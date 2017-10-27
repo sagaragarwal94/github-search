@@ -1,11 +1,14 @@
 from flask import render_template, request, g, session, redirect, url_for
 from . import orgs
-import requests
 from ..apicode import apiresult
+from app import redis_store
+import json, pickle
 
 
 @orgs.route('/', methods=['GET', 'POST'])
 def index():
+    redis_store.set('json_data', None)
+    redis_store.set('newsortedlist',None)
     if request.method == 'POST':
         org_name = request.form['orgsearch'].strip().title()
         if not org_name:
@@ -38,10 +41,10 @@ def sort_by_name(org_name):
         return render_template('orgs/results.html',context_dict=context_dict)
 
 
+
 @orgs.route('/SortByDate/<org_name>')
 def sort_by_date(org_name):
-    json_obj = apiresult(org_name)
-    l = []
+    json_obj = json.loads(redis_store.get('json_data'))
     sorted_list = sorted(json_obj, key=lambda k: k['created_at'], reverse = True)
     for row in sorted_list:
         l.append(str(row['language']))
@@ -53,8 +56,7 @@ def sort_by_date(org_name):
 
 @orgs.route('/SortByIssues/<org_name>')
 def sort_by_issues(org_name):
-    json_obj = apiresult(org_name)
-    l = []
+    json_obj = json.loads(redis_store.get('json_data'))
     sorted_list = sorted(json_obj, key=lambda k: k['open_issues'], reverse = True)
     for row in sorted_list:
         l.append(str(row['language']))
@@ -66,8 +68,7 @@ def sort_by_issues(org_name):
 
 @orgs.route('/SortByLanguage/<org_name>/<item>')
 def sort_by_language(org_name,item):
-    json_obj = apiresult(org_name)
-    l =[]
+    json_obj = json.loads(redis_store.get('json_data'))
     sorted_list = sorted(json_obj, key=lambda k: k['name'].title(), reverse = False)
     for row in sorted_list:
         l.append(str(row['language']))

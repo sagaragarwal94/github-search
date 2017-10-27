@@ -3,6 +3,7 @@ venv/
 *.*~
 .venv/
 node_modules/
+basic_api_codes/
 
 # OS generated files #
 ######################
